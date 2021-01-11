@@ -11,6 +11,8 @@ import type {StyleGlyph} from '../style/style_glyph';
 import type {RequestManager} from '../util/mapbox';
 import type {Callback} from '../types/callback';
 
+export const SDF_SCALE = 2;
+
 type Entry = {
     // null means we've requested the range, but the glyph wasn't included in the result.
     glyphs: {[id: number]: StyleGlyph | null},
@@ -164,7 +166,7 @@ class GlyphManager {
         }
 
         let tinySDF = entry.tinySDF;
-        const sdfBuffer = 3;
+        const sdfBuffer = 3 * SDF_SCALE;
         if (!tinySDF) {
             let fontWeight = '400';
             if (/bold/i.test(stack)) {
@@ -174,18 +176,27 @@ class GlyphManager {
             } else if (/light/i.test(stack)) {
                 fontWeight = '200';
             }
-            tinySDF = entry.tinySDF = new GlyphManager.TinySDF(24, sdfBuffer, 8, .25, family, fontWeight);
+            tinySDF = entry.tinySDF = new GlyphManager.TinySDF(24 * SDF_SCALE, sdfBuffer, 8 * SDF_SCALE, .25, family, fontWeight);
         }
 
         const sdfWithMetrics = tinySDF.drawWithMetrics(String.fromCharCode(id));
+        const metrics = sdfWithMetrics.metrics;
+        const boundingBoxAscent = metrics.top + tinySDF.middle;
 
         return {
             id,
             bitmap: new AlphaImage({
-                width: sdfWithMetrics.metrics.width + sdfBuffer * 2,
-                height: sdfWithMetrics.metrics.height + sdfBuffer * 2
+                width: metrics.width + sdfBuffer * 2,
+                height: metrics.height + sdfBuffer * 2
             }, sdfWithMetrics.data),
-            metrics: sdfWithMetrics.metrics
+            metrics: {
+                width: metrics.width / SDF_SCALE,
+                height: metrics.height / SDF_SCALE,
+                left: metrics.left / SDF_SCALE,
+                top: boundingBoxAscent / SDF_SCALE - tinySDF.middle / SDF_SCALE,
+                advance: metrics.advance / SDF_SCALE,
+                localGlyph: true
+            }
         };
     }
 }

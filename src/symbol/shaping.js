@@ -660,11 +660,11 @@ function shapeLines(shaping: Shaping,
             }
 
             if (!vertical) {
-                positionedGlyphs.push({glyph: codePoint, imageName, x, y: y + baselineOffset, vertical, scale: section.scale, fontStack: section.fontStack, sectionIndex, metrics, rect});
+                positionedGlyphs.push({glyph: codePoint, imageName, x, y: y + baselineOffset, vertical, scale: section.scale, localGlyph: metrics.localGlyph, fontStack: section.fontStack, sectionIndex, metrics, rect});
                 x += metrics.advance * section.scale + spacing;
             } else {
                 shaping.verticalizable = true;
-                positionedGlyphs.push({glyph: codePoint, imageName, x, y: y + baselineOffset, vertical, scale: section.scale, fontStack: section.fontStack, sectionIndex, metrics, rect});
+                positionedGlyphs.push({glyph: codePoint, imageName, x, y: y + baselineOffset, vertical, scale: section.scale, localGlyph: metrics.localGlyph, fontStack: section.fontStack, sectionIndex, metrics, rect});
                 x += verticalAdvance * section.scale + spacing;
             }
         }
