@@ -32,6 +32,9 @@ class GlyphManager {
     localFontFamily: ?string;
     localGlyphMode: number;
     entries: {[_: string]: Entry};
+    // Multiple fontstacks may share the same local glyphs, so keep an index
+    // into the glyphs based soley on font weight
+    localGlyphs: {[_: string]: {[id: number]: StyleGlyph | null}};
     url: ?string;
 
     // exposed as statics to enable stubbing in unit tests
@@ -43,6 +46,13 @@ class GlyphManager {
         this.localGlyphMode = localGlyphMode;
         this.localFontFamily = localFontFamily;
         this.entries = {};
+        this.localGlyphs = {
+            // Only these four font weights are supported
+            '200': {},
+            '400': {},
+            '500': {},
+            '900': {}
+        };
     }
 
     setURL(url: ?string) {
@@ -179,11 +189,15 @@ class GlyphManager {
             tinySDF = entry.tinySDF = new GlyphManager.TinySDF(24 * SDF_SCALE, sdfBuffer, 8 * SDF_SCALE, .25, family, fontWeight);
         }
 
+        if (this.localGlyphs[tinySDF.fontWeight][id]) {
+            return this.localGlyphs[tinySDF.fontWeight][id];
+        }
+
         const sdfWithMetrics = tinySDF.drawWithMetrics(String.fromCharCode(id));
         const metrics = sdfWithMetrics.metrics;
         const boundingBoxAscent = metrics.top + tinySDF.middle;
 
-        return {
+        return this.localGlyphs[tinySDF.fontWeight][id] = {
             id,
             bitmap: new AlphaImage({
                 width: metrics.width + sdfBuffer * 2,
