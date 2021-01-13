@@ -34,8 +34,11 @@ void main() {
     float dist = length(v_pos - gl_FragCoord.xy);
     float alpha = 1.0 - smoothstep(0.0, 1.0, dist);
 
+    vec4 c0 = mix(color1, color2, u_fade);
+    vec4 c1 = mix(color1, c0, pattern_tl_b.x == -1.0 ? 0.0 : 1.0);
+    vec4 c2 = mix(color2, c1, pattern_tl_a.x == -1.0 ? 0.0 : 1.0);
 
-    gl_FragColor = mix(color1, color2, u_fade) * alpha * opacity;
+    gl_FragColor = c2 * alpha * opacity;
 
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor = vec4(1.0);

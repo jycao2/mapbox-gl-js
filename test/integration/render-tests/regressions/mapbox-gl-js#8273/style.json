@@ -6,7 +6,9 @@
       "height": 64,
       "operations": [
         ["setPaintProperty", "line", "line-pattern", "zoo_icon"],
-        ["wait"]
+        ["wait"],
+        ["wait", 200],
+        ["wait", 200]
       ]
     }
   },

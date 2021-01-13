@@ -35,6 +35,7 @@ import type {
 import type {PossiblyEvaluated} from '../style/properties';
 import type {FeatureStates} from '../source/source_state';
 import type {FormattedSection} from '../style-spec/expression/types/formatted';
+import assert from 'assert';
 
 export type BinderUniform = {
     name: string,
@@ -113,34 +114,37 @@ class ConstantBinder implements UniformBinder {
 }
 
 class CrossFadedConstantBinder implements UniformBinder {
+    defaultBinderValue: Array<number>;
     uniformNames: Array<string>;
-    patternFrom: ?Array<number>;
-    patternTo: ?Array<number>;
+    patternFrom: Array<number>;
+    patternTo: Array<number>;
     pixelRatioFrom: number;
     pixelRatioTo: number;
 
     constructor(value: mixed, names: Array<string>) {
         this.uniformNames = names.map(name => `u_${name}`);
-        this.patternFrom = null;
-        this.patternTo = null;
+        this.defaultBinderValue = [-1, -1, -1, -1];
+        this.patternFrom = this.defaultBinderValue;
+        this.patternTo = this.defaultBinderValue;
         this.pixelRatioFrom = 1.0;
         this.pixelRatioTo = 1.0;
     }
 
     setConstantPatternPositions(posTo: ImagePosition, posFrom: ImagePosition) {
-        this.pixelRatioFrom = posFrom.pixelRatio;
-        this.pixelRatioTo = posTo.pixelRatio;
-        this.patternFrom = posFrom.tlbr;
-        this.patternTo = posTo.tlbr;
+        this.pixelRatioFrom = posFrom ? posFrom.pixelRatio : 1.0;
+        this.pixelRatioTo = posTo ? posTo.pixelRatio : 1.0;
+        this.patternFrom = posFrom ? posFrom.tlbr : this.defaultBinderValue;
+        this.patternTo = posTo ? posTo.tlbr : this.defaultBinderValue;
     }
 
     setUniform(uniform: Uniform<*>, globals: GlobalProperties, currentValue: PossiblyEvaluatedPropertyValue<mixed>, uniformName: string) {
-        const pos =
+        const uniformData =
             uniformName === 'u_pattern_to' ? this.patternTo :
             uniformName === 'u_pattern_from' ? this.patternFrom :
             uniformName === 'u_pixel_ratio_to' ? this.pixelRatioTo :
             uniformName === 'u_pixel_ratio_from' ? this.pixelRatioFrom : null;
-        if (pos) uniform.set(pos);
+        assert(uniformData);
+        uniform.set(uniformData);
     }
 
     getBinding(context: Context, location: WebGLUniformLocation, name: string): $Shape<Uniform<any>> {
@@ -312,12 +316,16 @@ class CrossFadedCompositeBinder implements AttributeBinder {
     zoomOutPaintVertexBuffer: ?VertexBuffer;
     paintVertexAttributes: Array<StructArrayMember>;
 
-    constructor(expression: CompositeExpression, type: string, useIntegerZoom: boolean, zoom: number, PaintVertexArray: Class<StructArray>, layerId: string) {
+    constructor(expression: CompositeExpression, names: Array<string>, type: string, useIntegerZoom: boolean, zoom: number, PaintVertexArray: Class<StructArray>, layerId: string) {
         this.expression = expression;
         this.type = type;
         this.useIntegerZoom = useIntegerZoom;
         this.zoom = zoom;
         this.layerId = layerId;
+
+        for (let i = 0; i < names.length; ++i) {
+            assert(`a_${names[i]}` === patternAttributes.members[i].name);
+        }
 
         this.zoomInPaintVertexArray = new PaintVertexArray();
         this.zoomOutPaintVertexArray = new PaintVertexArray();
@@ -429,7 +437,7 @@ export default class ProgramConfiguration {
             } else if (expression.kind === 'source' || isCrossFaded) {
                 const StructArrayLayout = layoutType(property, type, 'source');
                 this.binders[property] = isCrossFaded ?
-                    new CrossFadedCompositeBinder(expression, type, useIntegerZoom, zoom, StructArrayLayout, layer.id) :
+                    new CrossFadedCompositeBinder(expression, names, type, useIntegerZoom, zoom, StructArrayLayout, layer.id) :
                     new SourceExpressionBinder(expression, names, type, StructArrayLayout);
                 keys.push(`/a_${property}`);
 

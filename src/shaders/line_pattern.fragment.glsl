@@ -64,9 +64,14 @@ void main() {
     vec2 pos_a = mix(pattern_tl_a * texel_size - texel_size, pattern_br_a * texel_size + texel_size, vec2(x_a, y));
     vec2 pos_b = mix(pattern_tl_b * texel_size - texel_size, pattern_br_b * texel_size + texel_size, vec2(x_b, y));
 
-    vec4 color = mix(texture2D(u_image, pos_a), texture2D(u_image, pos_b), u_fade);
+    vec4 color1 = texture2D(u_image, pos_a);
+    vec4 color2 = texture2D(u_image, pos_b);
 
-    gl_FragColor = color * alpha * opacity;
+    vec4 c0 = mix(color1, color2, u_fade);
+    vec4 c1 = mix(color1, c0, pattern_tl_b.x == -1.0 ? 0.0 : 1.0);
+    vec4 c2 = mix(color2, c1, pattern_tl_a.x == -1.0 ? 0.0 : 1.0);
+
+    gl_FragColor = c2 * alpha * opacity;
 
 #ifdef OVERDRAW_INSPECTOR
     gl_FragColor = vec4(1.0);

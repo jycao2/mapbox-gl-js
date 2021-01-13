@@ -87,7 +87,7 @@ function drawExtrusionTiles(painter, source, layer, coords, depthMode, stencilMo
             const atlas = tile.imageAtlas;
             const posTo = atlas.patternPositions[constantPattern.to.toString()];
             const posFrom = atlas.patternPositions[constantPattern.from.toString()];
-            if (posTo && posFrom) programConfiguration.setConstantPatternPositions(posTo, posFrom);
+            programConfiguration.setConstantPatternPositions(posTo, posFrom);
         }
 
         const matrix = painter.translatePosMatrix(

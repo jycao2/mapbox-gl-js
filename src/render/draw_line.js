@@ -64,7 +64,7 @@ export default function drawLine(painter: Painter, sourceCache: SourceCache, lay
             const atlas = tile.imageAtlas;
             const posTo = atlas.patternPositions[constantPattern.to.toString()];
             const posFrom = atlas.patternPositions[constantPattern.from.toString()];
-            if (posTo && posFrom) programConfiguration.setConstantPatternPositions(posTo, posFrom);
+            programConfiguration.setConstantPatternPositions(posTo, posFrom);
         }
 
         const matrix = painter.terrain ? coord.posMatrix : null;
