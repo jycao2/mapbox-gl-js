@@ -195,19 +195,20 @@ class GlyphManager {
 
         const sdfWithMetrics = tinySDF.drawWithMetrics(String.fromCharCode(id));
         const metrics = sdfWithMetrics.metrics;
-        const boundingBoxAscent = metrics.top + tinySDF.middle;
+        const baselineAdjustment = 8 -
+            (metrics.fontAscent ? (17 - metrics.fontAscent / SDF_SCALE) : 0); // Adjusting to match DEFAULT_OFFSET in shaping.js
 
         return this.localGlyphs[tinySDF.fontWeight][id] = {
             id,
             bitmap: new AlphaImage({
-                width: metrics.width + sdfBuffer * 2,
-                height: metrics.height + sdfBuffer * 2
+                width: metrics.sdfWidth,
+                height: metrics.sdfHeight
             }, sdfWithMetrics.data),
             metrics: {
                 width: metrics.width / SDF_SCALE,
                 height: metrics.height / SDF_SCALE,
                 left: metrics.left / SDF_SCALE,
-                top: boundingBoxAscent / SDF_SCALE - tinySDF.middle / SDF_SCALE,
+                top: metrics.top / SDF_SCALE - baselineAdjustment,
                 advance: metrics.advance / SDF_SCALE,
                 localGlyph: true
             }
