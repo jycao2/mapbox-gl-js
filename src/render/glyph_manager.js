@@ -198,7 +198,7 @@ class GlyphManager {
         const baselineAdjustment = 8 -
             (metrics.fontAscent ? (17 - metrics.fontAscent / SDF_SCALE) : 0); // Adjusting to match DEFAULT_OFFSET in shaping.js
 
-        return this.localGlyphs[tinySDF.fontWeight][id] = {
+        const glyph = this.localGlyphs[tinySDF.fontWeight][id] = {
             id,
             bitmap: new AlphaImage({
                 width: metrics.sdfWidth,
@@ -213,6 +213,7 @@ class GlyphManager {
                 localGlyph: true
             }
         };
+        return glyph;
     }
 }
 
